@@ -153,45 +153,6 @@ SECRET=seu_secret_super_seguro_aqui
 WRITE_DELAY=50  # ms para batch writes
 ```
 
-## 🎮 Uso
-
-### Fluxo Básico
-
-```javascript
-// 1. Registrar e obter instância
-const { hash, token } = await fetch('http://localhost:3131/titan-forge/registerAndConnect')
-  .then(r => r.json());
-
-// 2. Armazenar dados
-await fetch('http://localhost:3131/titan-forge/setEntry', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    instance: hash,
-    key: 'user:123',
-    value: { name: 'João', email: 'joao@example.com' }
-  })
-});
-
-// 3. Ler dados
-const data = await fetch('http://localhost:3131/titan-forge/getEntry', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    instance: hash,
-    key: 'user:123'
-  })
-}).then(r => r.json());
-
-console.log(data.value);
-```
-
 ## 🔌 API Endpoints
 
 ### 1. Registrar Instância
