@@ -1,0 +1,46 @@
+const rateLimit = require("express-rate-limit");
+
+function isPremium(req) {
+    
+    let listaIpPremium = [
+        "127.0.0.1"
+    ];
+
+    let ip = req.ip;
+
+    if (listaIpPremium.includes(ip)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    message: "Reached limit, try again later. ⏳",
+    max: function(req, res) {
+      if (isPremium(req)) {
+        return 100000;
+      }
+      return 100;
+    }
+  });
+
+  const limiterReached = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 1,
+    message: "Slow down, buddy. You're requesting too fast. 💥"
+  });
+
+  exports.limiterApiRequestsInvalid =(req, res, next) => {
+    limiterReached(req, res, next);
+  }
+  
+  exports.limiterApiRequests =(req, res, next) => {
+    limiter(req, res, next);
+  }
+
+  exports.limiterApiRequestsInvalid =(req, res, next) => {
+    limiterReached(req, res, next);
+  }
+

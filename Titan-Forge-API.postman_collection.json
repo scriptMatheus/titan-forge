@@ -1,0 +1,148 @@
+{
+	"info": {
+		"_postman_id": "titan-forge-collection",
+		"name": "Titan Forge API",
+		"description": "API para gerenciamento de instâncias e dados chave-valor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Register And Connect",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var data = pm.response.json();",
+							"    pm.collectionVariables.set('token', data.token);",
+							"    pm.collectionVariables.set('instance_hash', data.hash);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/registerAndConnect",
+					"host": ["{{base_url}}"],
+					"path": ["registerAndConnect"]
+				},
+				"description": "Cria uma nova instância e retorna hash + token JWT (válido por 24h)"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Set Entry",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"instance\": \"{{instance_hash}}\",\n    \"key\": \"user_name\",\n    \"value\": \"John Doe\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/setEntry",
+					"host": ["{{base_url}}"],
+					"path": ["setEntry"]
+				},
+				"description": "Cria ou atualiza uma entrada (key-value) na instância"
+			},
+			"response": []
+		},
+		{
+			"name": "3. Get Entry",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"instance\": \"{{instance_hash}}\",\n    \"key\": \"user_name\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/getEntry",
+					"host": ["{{base_url}}"],
+					"path": ["getEntry"]
+				},
+				"description": "Busca o valor de uma chave específica"
+			},
+			"response": []
+		},
+		{
+			"name": "4. Read All Entries",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/readAllEntries/{{instance_hash}}",
+					"host": ["{{base_url}}"],
+					"path": ["readAllEntries", "{{instance_hash}}"]
+				},
+				"description": "Retorna todos os dados de uma instância"
+			},
+			"response": []
+		},
+		{
+			"name": "5. List Instances",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/listInstances",
+					"host": ["{{base_url}}"],
+					"path": ["listInstances"]
+				},
+				"description": "Lista todas as instâncias registradas no sistema"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3131/titan-forge",
+			"type": "default"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "instance_hash",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
