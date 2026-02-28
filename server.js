@@ -29,7 +29,7 @@ app.use((req, res, next) => {
     console.log(`Requisição bloqueada. 🚫 URL não contém a url-base correta: ${url}`);
     return res.status(500).json({ 
       message: "Acesso negado",
-      error: "Forbidden"
+      error: "Proibido"
     });
   }
   
@@ -56,7 +56,7 @@ app.use((req, res, next) => {
     console.log(`Requisição bloqueada. 🚫 User-Agent: ${userAgent} | Origin: ${origin}`);
     return res.status(500).json({ 
       message: "Acesso negado",
-      error: "Forbidden"
+      error: "Proibido"
     });
   }
   

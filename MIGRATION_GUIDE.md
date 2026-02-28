@@ -199,7 +199,7 @@ exports.setEntry = async (req, res) => {
 exports.setEntry = async (req, res) => {
   // Valida instância do CACHE em memória
   if (!await storage.hasInstance(instance)) { // O(1)
-    return res.status(400).json({ message: "Invalid instance" });
+    return res.status(400).json({ message: "Instância inválida" });
   }
   
   // Define entrada - atualiza CACHE + agenda flush

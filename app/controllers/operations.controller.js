@@ -29,7 +29,7 @@ exports.registerAndConnect = async (req, res) => {
       // Segurança contra loop infinito (improvável)
       if (++attempts > 10) {
         return res.status(500).json({
-          message: "Error generating unique instance"
+          message: "Erro ao gerar instância única"
         });
       }
     }
@@ -40,14 +40,14 @@ exports.registerAndConnect = async (req, res) => {
     const token = generateToken();
     
     return res.status(200).json({
-      message: "Registered and connected",
+      message: "Registrado e conectado com sucesso",
       hash: generatedHash,
       token: token
     });
   } catch (error) {
-    console.error('Error in registerAndConnect:', error);
+    console.error('Erro registerAndConnect:', error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Erro ao registrar e conectar instância"
     });
   }
 };
@@ -58,21 +58,21 @@ exports.setEntry = async (req, res) => {
     
     if (!instance || value === undefined || !key) {
       return res.status(400).json({
-        message: "Missing required fields",
+        message: "Campos obrigatórios faltando",
       });
     }
     
     // Valida UUID
     if (!storage.isValidUUID(instance)) {
       return res.status(400).json({
-        message: "Invalid instance format",
+        message: "Formato de instância inválido",
       });
     }
     
     // Valida se instância existe
     if (!await storage.hasInstance(instance)) {
       return res.status(400).json({
-        message: "Invalid instance",
+        message: "Instância inválida",
       });
     }
     
@@ -80,12 +80,12 @@ exports.setEntry = async (req, res) => {
     await storage.setEntry(instance, key, value);
     
     return res.status(201).json({
-      status: "Created/Updated",
+      status: "Criado/Atualizado",
     });
   } catch (error) {
-    console.error('Error in setEntry:', error);
+    console.error('Erro setEntry:', error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Erro interno do servidor"
     });
   }
 };
@@ -97,7 +97,7 @@ exports.readAllEntries = async (req, res) => {
     
     if (!instance) {
       return res.status(400).json({
-        message: "Missing required fields",
+        message: "Campos obrigatórios faltando",
       });
     }
     
@@ -107,7 +107,7 @@ exports.readAllEntries = async (req, res) => {
       
       if (isRoot !== 0 && isRoot !== 1) {
         return res.status(400).json({
-          message: "Invalid isRoot value. Must be 0 or 1.",
+          message: "Valor de isRoot inválido. Deve ser 0 ou 1.",
         });
       }
     } else {
@@ -117,14 +117,14 @@ exports.readAllEntries = async (req, res) => {
     // Valida UUID
     if (!storage.isValidUUID(instance)) {
       return res.status(400).json({
-        message: "Invalid instance format",
+        message: "Formato de instância inválido",
       });
     }
     
     // Valida se instância existe
     if (!await storage.hasInstance(instance)) {
       return res.status(400).json({
-        message: "Invalid instance",
+        message: "Instância inválida",
       });
     }
     
@@ -139,9 +139,9 @@ exports.readAllEntries = async (req, res) => {
     
     return res.status(200).json(data);
   } catch (error) {
-    console.error('Error in readAllEntries:', error);
+    console.error('Erro readAllEntries:', error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Erro interno do servidor"
     });
   }
 };
@@ -152,21 +152,21 @@ exports.getEntry = async (req, res) => {
     
     if (!instance || !key) {
       return res.status(400).json({
-        message: "Missing required fields",
+        message: "Campos obrigatórios faltando",
       });
     }
     
     // Valida UUID
     if (!storage.isValidUUID(instance)) {
       return res.status(400).json({
-        message: "Invalid instance format",
+        message: "Formato de instância inválido",
       });
     }
     
     // Valida se instância existe
     if (!await storage.hasInstance(instance)) {
       return res.status(400).json({
-        message: "Invalid instance",
+        message: "Instância inválida",
       });
     }
     
@@ -175,7 +175,7 @@ exports.getEntry = async (req, res) => {
     
     if (value === undefined) {
       return res.status(404).json({
-        message: "Key not found",
+        message: "Chave não encontrada",
       });
     }
     
@@ -186,7 +186,7 @@ exports.getEntry = async (req, res) => {
   } catch (error) {
     console.error('Error in getEntry:', error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Erro interno do servidor"
     });
   }
 };
@@ -201,9 +201,9 @@ exports.listInstances = async (req, res) => {
       instances: instances
     });
   } catch (error) {
-    console.error('Error in listInstances:', error);
+    console.error('Erro listInstances:', error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Erro interno do servidor"
     });
   }
 };
@@ -213,12 +213,12 @@ exports.flush = async (req, res) => {
   try {
     await storage.flush();
     return res.status(200).json({
-      message: "All data flushed to disk"
+      message: "Todos os dados foram salvos no disco"
     });
   } catch (error) {
-    console.error('Error in flush:', error);
+    console.error('Erro flush:', error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Erro interno do servidor"
     });
   }
 };
@@ -232,7 +232,7 @@ process.on('SIGTERM', async () => {
     console.log('Data flushed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('Error during shutdown:', error);
+    console.error('Erro durante shutdown:', error);
     process.exit(1);
   }
 });
@@ -245,7 +245,7 @@ process.on('SIGINT', async () => {
     console.log('Data flushed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('Error during shutdown:', error);
+    console.error('Erro durante shutdown:', error);
     process.exit(1);
   }
 });

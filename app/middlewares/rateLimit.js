@@ -17,7 +17,7 @@ function isPremium(req) {
 
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    message: "Reached limit, try again later. ⏳",
+    message: "Limite atingido, tente novamente mais tarde. ⏳",
     max: function(req, res) {
       if (isPremium(req)) {
         return 100000;
@@ -29,7 +29,7 @@ function isPremium(req) {
   const limiterReached = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 1,
-    message: "Slow down, buddy. You're requesting too fast. 💥"
+    message: "Devagar, amigo. Você está solicitando rápido demais. 💥"
   });
 
   exports.limiterApiRequestsInvalid =(req, res, next) => {
