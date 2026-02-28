@@ -1,15 +1,21 @@
 version: "3.7"
 services: 
-  worker-docx:
+  storage-worker:
     build: .
     environment:
       - SECRET=encX990
       - PORT=3131
       - BASE_URL=/titan-forge/
-    container_name: worker-docx  
+    container_name: storage-worker
     volumes: 
       - ./:/app/
     ports: 
       - "3131:3131"
     restart: unless-stopped
     command: bash -c 'npx nodemon app.js'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3131${BASE_URL:-/titan-forge/}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
