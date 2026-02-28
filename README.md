@@ -2,6 +2,8 @@
 
 API de alta performance para gerenciamento de dados key-value com sistema de instâncias isoladas. Construída com Node.js e otimizada para operações de I/O intensivas.
 
+**Similar ao Redis**, mas com foco em multi-tenancy e persistência em JSON. Ideal para cenários onde você precisa de múltiplos espaços isolados de dados com autenticação e auditoria integradas.
+
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
 [![Performance](https://img.shields.io/badge/performance-50x%20faster-brightgreen.svg)](#-performance)
@@ -24,8 +26,6 @@ API de alta performance para gerenciamento de dados key-value com sistema de ins
 ## 🎯 Sobre
 
 Titan Forge é uma API REST que fornece armazenamento key-value com **isolamento por instância** (multi-tenancy). Cada instância possui seu próprio namespace de dados, permitindo múltiplos clientes operarem de forma independente e segura.
-
-**Similar ao Redis**, mas com foco em multi-tenancy e persistência em JSON. Ideal para cenários onde você precisa de múltiplos espaços isolados de dados com autenticação e auditoria integradas.
 
 ### Principais Casos de Uso
 
@@ -189,7 +189,7 @@ const data = await fetch('http://localhost:3131/titan-forge/getEntry', {
   })
 }).then(r => r.json());
 
-console.log(data.value); // { name: 'João', email: 'joao@example.com' }
+console.log(data.value);
 ```
 
 ## 🔌 API Endpoints
