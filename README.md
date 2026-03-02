@@ -472,42 +472,6 @@ app.use(cors({
 }));
 ```
 
-### Performance Tuning
-
-**Ajustar Batch Write Delay:**
-
-```javascript
-// operations.controller.js
-const storage = getInstance({ 
-  writeDelay: 50  // ← Ajuste aqui (em ms)
-});
-```
-
-**Limpar Cache Periodicamente:**
-
-```javascript
-// Adicione no server.js
-setInterval(() => {
-  storage.clearAllCache();
-  console.log('Cache cleared');
-}, 60 * 60 * 1000); // A cada 1 hora
-```
-
-### Docker
-
-```bash
-# Build
-docker-compose build
-
-# Run
-docker-compose up -d
-
-# Logs
-docker-compose logs -f
-
-# Stop
-docker-compose down
-```
 
 ## 🧪 Testes
 
