@@ -153,6 +153,33 @@ SECRET=seu_secret_super_seguro_aqui
 WRITE_DELAY=50  # ms para batch writes
 ```
 
+## 🧪 Testes Automatizados
+
+Uma suíte de testes foi adicionada para validar o comportamento da API de forma programática. As especificações utilizam **Jest** como framework de testes e **Supertest** para fazer requisições HTTP ao servidor express.
+
+### Como executar
+
+1. Instale as dependências (já incluídas no package.json):
+   ```bash
+   npm install
+   ```
+2. Execute a suíte de testes:
+   ```bash
+   npm test
+   ```
+
+Os testes cobrem os principais fluxos:
+
+- registro de instância (`/registerAndConnect`)
+- criação e leitura de entradas (`/setEntry`, `/getEntry`, `/readAllEntries`)
+- listagem de instâncias (`/listInstances`)
+- endpoint de flush (`/flush`)
+- verificação de proteção de rotas com header `api-key`
+
+O ambiente de armazenamento é isolado em um diretório temporário durante a execução para evitar poluição dos dados reais.
+
+Após a seção de testes, documentamos os endpoints da API.
+
 ## 🔌 API Endpoints
 
 ### 1. Registrar Instância
@@ -582,31 +609,6 @@ const cacheHitRate = new prometheus.Gauge({
 // Atualizar métrica
 cacheHitRate.set(storage.getStats().hitRate * 100);
 ```
-
-## 🚀 Próximos Passos
-
-### Melhorias Futuras
-
-- [ ] **LevelDB/RocksDB**: Database key-value em C++
-- [ ] **Memory-mapped files**: Acesso ultra-rápido com mmap
-- [ ] **Protocol Buffers**: Serialização binária em vez de JSON
-- [ ] **Worker Threads**: I/O em threads separadas
-- [ ] **Redis**: Cache distribuído e pub/sub
-- [ ] **Cluster Mode**: Múltiplos processos Node.js
-- [ ] **Sharding**: Distribuir instâncias em múltiplos servidores
-- [ ] **Replicação**: Backup e redundância
-- [ ] **Compressão**: gzip/brotli para arquivos grandes
-- [ ] **LRU Cache**: Limitar memória usada pelo cache
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Por favor:
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
 
 ### Guidelines
 
