@@ -114,9 +114,14 @@ app.get('*', limiterApiRequestsInvalid, function (req, res, next) {
 
 });
   
-app.listen(process.env.PORT || 3131, () => {
-    console.log('Server started on port 👉',process.env.PORT, BASE_URL);
+// start server only if this file is run directly
+if (require.main === module) {
+    app.listen(process.env.PORT || 3131, () => {
+        console.log('Server started on port 👉', process.env.PORT, BASE_URL);
+    });
 }
-);
+
+module.exports = app; // export for testing
+
 
 

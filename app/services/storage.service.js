@@ -12,6 +12,7 @@ const path = require('path');
 
 class StorageService {
   constructor(options = {}) {
+    // allow override via options or environment variable (useful for tests)
     this.baseDir = options.baseDir || './app/assets';
     this.instancesFile = path.join(this.baseDir, 'instances.log');
     
@@ -327,12 +328,16 @@ class StorageService {
 // Singleton instance
 let instance = null;
 
+function getInstance(options) {
+  if (!instance) {
+    instance = new StorageService(options);
+  }
+  return instance;
+}
+
 module.exports = {
   StorageService,
-  getInstance: (options) => {
-    if (!instance) {
-      instance = new StorageService(options);
-    }
-    return instance;
-  }
+  getInstance,
+  // helper for tests to reset the singleton
+  _resetInstance: () => { instance = null; }
 };
