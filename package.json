@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "load:simulated": "node load-simulated-data.js"
   },
   "author": "Matheus - MRC",
   "license": "ISC",

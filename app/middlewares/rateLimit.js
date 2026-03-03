@@ -8,6 +8,10 @@ function isPremium(req) {
 
     let ip = req.ip;
 
+    if (typeof ip === 'string' && ip.startsWith('::ffff:')) {
+      ip = ip.replace('::ffff:', '');
+    }
+
     if (listaIpPremium.includes(ip)) {
         return true;
     } else {

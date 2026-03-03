@@ -54,7 +54,7 @@ exports.registerAndConnect = async (req, res) => {
 
 exports.setEntry = async (req, res) => {
   try {
-    const { value, key, instance } = req.body;
+    let { value, key, instance } = req.body;
     
     if (!instance || value === undefined || !key) {
       return res.status(400).json({
@@ -76,14 +76,12 @@ exports.setEntry = async (req, res) => {
       });
     }
     
-    //valida se value é um json válido
+    // Se value vier como string JSON, desserializa; se for string simples, mantém como está
     if (typeof value === 'string') {
       try {
         value = JSON.parse(value);
       } catch (err) {
-        return res.status(400).json({
-          message: "Valor deve ser um JSON válido",
-        });
+        // mantém a string original
       }
     }
 
