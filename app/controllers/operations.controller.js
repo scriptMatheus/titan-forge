@@ -76,6 +76,17 @@ exports.setEntry = async (req, res) => {
       });
     }
     
+    //valida se value é um json válido
+    if (typeof value === 'string') {
+      try {
+        value = JSON.parse(value);
+      } catch (err) {
+        return res.status(400).json({
+          message: "Valor deve ser um JSON válido",
+        });
+      }
+    }
+
     // Define entrada (operação em memória + batch write)
     await storage.setEntry(instance, key, value);
     

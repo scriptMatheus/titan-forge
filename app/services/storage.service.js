@@ -220,7 +220,7 @@ class StorageService {
     
     // Atualiza em memória
     data[key] = value;
-    ops.push({ key, value, timestamp: Date.now() });
+    ops.push({ key, value, updatedAt: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) });
     
     // Agenda escrita em batch
     this.scheduleSyncInstance(instance);
