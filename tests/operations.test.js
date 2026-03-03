@@ -74,6 +74,16 @@ describe('Titan Forge API suite', () => {
     expect(res.body.value).toBe('bar');
   });
 
+  it('should create a model via storage service and retrieve it', async () => {
+    const storage = storageModule.getInstance({ baseDir: tmpDir, writeDelay: 10 });
+    const modelFields = { name: 'string', age: 'number' };
+
+    await storage.createModel(instance, 'person', modelFields);
+    const model = await storage.getModel(instance, 'person');
+
+    expect(model).toEqual(modelFields);
+  });
+
   it('should read all entries for the instance', async () => {
     const res = await request(app)
       .get(BASE_URL + 'readAllEntries/' + instance)

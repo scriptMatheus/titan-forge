@@ -23,6 +23,9 @@ module.exports = app => {
     app.route(BASE_URL + 'flush')
         .post(verificaToken, ops.flush);
 
-    app.route(BASE_URL + 'setModel')
+    app.route(BASE_URL + 'setModel/:instance')
         .post(verificaToken, ops.createModel);
+
+    app.route(BASE_URL + 'getAllModels/:instance')
+        .get(verificaToken, ops.getAllModels);
 }

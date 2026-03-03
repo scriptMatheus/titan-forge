@@ -143,6 +143,42 @@ exports.createModel = async (req, res) => {
   }
 };
 
+
+exports.getAllModels = async (req, res) => {
+  try {
+    let { instance } = req.params;
+    
+    if (!instance) {
+      return res.status(400).json({
+        message: "Campos obrigatórios faltando",
+      });
+    }
+    
+    // Valida UUID
+    if (!storage.isValidUUID(instance)) {
+      return res.status(400).json({
+        message: "Formato de instância inválido",
+      });
+    }
+    
+    // Valida se instância existe
+    if (!await storage.hasInstance(instance)) {
+      return res.status(400).json({
+        message: "Instância inválida",
+      });
+    }
+
+    const models = await storage.getAllModels(instance);
+    
+    return res.status(200).json(models);
+  } catch (error) {
+    console.error('Erro getAllModels:', error);
+    return res.status(500).json({
+      message: "Erro interno do servidor"
+    });
+  }
+}
+
 exports.readAllEntries = async (req, res) => {
   try {
     let { instance } = req.params;

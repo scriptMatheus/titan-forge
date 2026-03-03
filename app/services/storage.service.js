@@ -1,12 +1,3 @@
-/**
- * Serviço de storage otimizado de baixo nível
- * - Operações assíncronas
- * - Cache em memória
- * - Batch writes
- * - File descriptors reutilizados
- */
-
-const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
 
@@ -20,6 +11,7 @@ class StorageService {
     this.instancesCache = new Set();
     this.dataCache = new Map(); // instance -> data object
     this.opsCache = new Map();  // instance -> operations array
+    this.modelsCache = new Map(); // instance -> models object
     
     // Controle de escritas em batch
     this.writePending = new Map(); // instance -> timeout
@@ -300,6 +292,16 @@ class StorageService {
     
     const data = await this.loadInstanceData(instance);
     return { ...data }; // Retorna cópia para evitar mutações
+  }
+
+    /**
+   * Lê todos modelos de uma instância
+   */
+  async getAllModels(instance) {
+    await this.initialize();
+    
+    const models = await this.loadInstanceModels(instance);
+    return { ...models }; // Retorna cópia para evitar mutações
   }
 
   /**
