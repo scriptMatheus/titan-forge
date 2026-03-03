@@ -99,6 +99,50 @@ exports.setEntry = async (req, res) => {
   }
 };
 
+exports.createModel = async (req, res) => {
+  try {
+    let { instance } = req.params;
+    let { fields } = req.body;
+    let { name } = req.body;
+    
+    if (!instance || !fields || typeof fields !== 'object' || !name) {
+      return res.status(400).json({
+        message: "Campos obrigatórios faltando ou fields não é um objeto",
+      });
+    }
+
+    name = name.trim().toLowerCase();
+
+    //valida se name tem caracteres inválidos, permitidos (apenas letras, números)
+    if (!/^[a-z0-9]+$/.test(name)) {
+      return res.status(400).json({
+        message: "Nome do modelo inválido. Deve conter apenas letras e números.",
+      });
+    }
+    
+    // Se value vier como string JSON, desserializa; se for string simples, mantém como está
+    if (typeof fields === 'string') {
+      try {
+        fields = JSON.parse(fields);
+      } catch (err) {
+        // mantém a string original
+      }
+    }
+
+    // Define entrada (operação em memória + batch write)
+    await storage.createModel(instance, name, fields);
+    
+    return res.status(201).json({
+      status: "Criado/Atualizado",
+    });
+  } catch (error) {
+    console.error('Erro setEntry:', error);
+    return res.status(500).json({
+      message: "Erro interno do servidor"
+    });
+  }
+};
+
 exports.readAllEntries = async (req, res) => {
   try {
     let { instance } = req.params;

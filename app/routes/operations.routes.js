@@ -22,4 +22,7 @@ module.exports = app => {
 
     app.route(BASE_URL + 'flush')
         .post(verificaToken, ops.flush);
+
+    app.route(BASE_URL + 'setModel')
+        .post(verificaToken, ops.createModel);
 }

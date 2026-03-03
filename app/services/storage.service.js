@@ -151,6 +151,60 @@ class StorageService {
     }
   }
 
+    /**
+   * Carrega modelos de uma instância no cache
+   */
+  async loadInstanceModels(instance) {
+    if (this.modelsCache.has(instance)) {
+      return this.modelsCache.get(instance);
+    }
+    
+    const modelsFilePath = path.join(this.baseDir, `models-${instance}.json`);
+    
+    try {
+      const buffer = await fsPromises.readFile(modelsFilePath);
+      const models = JSON.parse(buffer.toString('utf8'));
+      this.modelsCache.set(instance, models);
+      return models;
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        const models = [];
+        this.modelsCache.set(instance, models);
+        return models;
+      }
+      throw err;
+    }
+  }
+
+      /**
+   * Define/atualiza um model
+   */
+  async createModel(instance, name, fields ) {
+    await this.initialize();
+    
+    // Carrega dados no cache se necessário
+    const models = await this.loadInstanceModels(instance);
+    
+    // Atualiza em memória
+    models[name] = fields;
+    this.modelsCache.set(instance, models);
+    
+    // Agenda escrita em batch
+    this.scheduleSyncInstance(instance);
+    
+    return true;
+  }
+
+  /**
+   * Lê um modelo
+   */
+  async getModel(instance, name) {
+    await this.initialize();
+    
+    const models = await this.loadInstanceModels(instance);
+    return models[name];
+  }
+  
   /**
    * Agenda escrita em batch (debounce)
    */
