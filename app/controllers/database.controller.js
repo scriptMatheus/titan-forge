@@ -18,7 +18,7 @@ const typeValidators = {
   uuid:     (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v),
 };
 
-const TYPE_LABELS = {
+const typeLabels = {
   varchar: 'string',
   number:  'number',
   boolean: 'boolean',
@@ -311,7 +311,7 @@ exports.setDataOnModel = async (req, res) => {
 
       if (!validator || !validator(value)) {
         return res.status(400).json({
-          message: `Valor inválido para o campo '${fieldName}'. Tipo esperado: ${TYPE_LABELS[normalizedType] || fieldType}. Recebido: ${typeof value}`,
+          message: `Valor inválido para o campo '${fieldName}'. Tipo esperado: ${typeLabels[normalizedType] || fieldType}. Recebido: ${typeof value}`,
         });
       }
 
