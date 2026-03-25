@@ -41,7 +41,7 @@ exports.registerAndConnect = async (req, res) => {
     
     return res.status(200).json({
       message: "Registrado e conectado com sucesso",
-      hash: generatedHash,
+      instance: generatedHash,
       token: token
     });
   } catch (error) {
@@ -98,86 +98,6 @@ exports.setEntry = async (req, res) => {
     });
   }
 };
-
-exports.createModel = async (req, res) => {
-  try {
-    let { instance } = req.params;
-    let { fields } = req.body;
-    let { name } = req.body;
-    
-    if (!instance || !fields || typeof fields !== 'object' || !name) {
-      return res.status(400).json({
-        message: "Campos obrigatórios faltando ou fields não é um objeto",
-      });
-    }
-
-    name = name.trim().toLowerCase();
-
-    //valida se name tem caracteres inválidos, permitidos (apenas letras, números)
-    if (!/^[a-z0-9]+$/.test(name)) {
-      return res.status(400).json({
-        message: "Nome do modelo inválido. Deve conter apenas letras e números.",
-      });
-    }
-    
-    // Se value vier como string JSON, desserializa; se for string simples, mantém como está
-    if (typeof fields === 'string') {
-      try {
-        fields = JSON.parse(fields);
-      } catch (err) {
-        // mantém a string original
-      }
-    }
-
-    // Define entrada (operação em memória + batch write)
-    await storage.createModel(instance, name, fields);
-    
-    return res.status(201).json({
-      status: "Criado/Atualizado",
-    });
-  } catch (error) {
-    console.error('Erro setEntry:', error);
-    return res.status(500).json({
-      message: "Erro interno do servidor"
-    });
-  }
-};
-
-
-exports.getAllModels = async (req, res) => {
-  try {
-    let { instance } = req.params;
-    
-    if (!instance) {
-      return res.status(400).json({
-        message: "Campos obrigatórios faltando",
-      });
-    }
-    
-    // Valida UUID
-    if (!storage.isValidUUID(instance)) {
-      return res.status(400).json({
-        message: "Formato de instância inválido",
-      });
-    }
-    
-    // Valida se instância existe
-    if (!await storage.hasInstance(instance)) {
-      return res.status(400).json({
-        message: "Instância inválida",
-      });
-    }
-
-    const models = await storage.getAllModels(instance);
-    
-    return res.status(200).json(models);
-  } catch (error) {
-    console.error('Erro getAllModels:', error);
-    return res.status(500).json({
-      message: "Erro interno do servidor"
-    });
-  }
-}
 
 exports.readAllEntries = async (req, res) => {
   try {
@@ -312,29 +232,4 @@ exports.flush = async (req, res) => {
   }
 };
 
-// Graceful shutdown - importante para garantir que dados sejam salvos
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, flushing data...');
-  try {
-    await storage.flush();
-    await storage.destroy();
-    console.log('Data flushed successfully');
-    process.exit(0);
-  } catch (error) {
-    console.error('Erro durante shutdown:', error);
-    process.exit(1);
-  }
-});
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, flushing data...');
-  try {
-    await storage.flush();
-    await storage.destroy();
-    console.log('Data flushed successfully');
-    process.exit(0);
-  } catch (error) {
-    console.error('Erro durante shutdown:', error);
-    process.exit(1);
-  }
-});

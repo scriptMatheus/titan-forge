@@ -6,6 +6,7 @@ services:
       - SECRET=encX990
       - PORT=3131
       - BASE_URL=/titan-forge/
+      - COMPLETELY_CLEAN_START=0
     container_name: storage-worker
     volumes: 
       - ./:/app/

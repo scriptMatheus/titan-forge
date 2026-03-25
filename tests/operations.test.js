@@ -39,10 +39,10 @@ describe('Titan Forge API suite', () => {
   it('should register and connect successfully', async () => {
     const res = await request(app).get(BASE_URL + 'registerAndConnect');
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('hash');
+    expect(res.body).toHaveProperty('instance');
     expect(res.body).toHaveProperty('token');
 
-    instance = res.body.hash;
+    instance = res.body.instance;
     token = res.body.token;
     expect(typeof instance).toBe('string');
     expect(typeof token).toBe('string');
@@ -74,14 +74,23 @@ describe('Titan Forge API suite', () => {
     expect(res.body.value).toBe('bar');
   });
 
-  it('should create a model via storage service and retrieve it', async () => {
-    const storage = storageModule.getInstance({ baseDir: tmpDir, writeDelay: 10 });
-    const modelFields = { name: 'string', age: 'number' };
+  it('should create a model and retrieve it via HTTP', async () => {
+    const modelFields = { name: 'varchar', age: 'number' };
 
-    await storage.createModel(instance, 'person', modelFields);
-    const model = await storage.getModel(instance, 'person');
+    const createRes = await request(app)
+      .post(BASE_URL + 'setModel/' + instance)
+      .set('api-key', token)
+      .send({ modelName: 'person', fields: modelFields });
 
-    expect(model).toEqual(modelFields);
+    expect(createRes.status).toBe(201);
+
+    const getRes = await request(app)
+      .get(BASE_URL + 'getAllModels/' + instance)
+      .set('api-key', token);
+
+    expect(getRes.status).toBe(200);
+    expect(getRes.body).toHaveProperty('person');
+    expect(getRes.body.person).toEqual(modelFields);
   });
 
   it('should read all entries for the instance', async () => {

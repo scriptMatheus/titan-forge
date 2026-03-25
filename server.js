@@ -107,6 +107,8 @@ app.get(BASE_URL, (req, res) => {
 }
 );
 require('./app/routes/operations.routes.js')(app);
+require('./app/routes/models.routes.js')(app);
+require('./app/routes/database.routes.js')(app);
 
 app.get('*', limiterApiRequestsInvalid, function (req, res, next) {
 
@@ -116,12 +118,95 @@ app.get('*', limiterApiRequestsInvalid, function (req, res, next) {
   
 // start server only if this file is run directly
 if (require.main === module) {
-    app.listen(process.env.PORT || 3131, () => {
-        console.log('Server started on port 👉', process.env.PORT, BASE_URL);
+    const { getInstance } = require('./app/services/storage.service');
+    const { getInstance: getModelService } = require('./app/services/model.service');
+    const { getInstance: getOpsService } = require('./app/services/operations.service');
+    const { getInstance: getDatabaseService } = require('./app/services/database.service');
+
+    (async () => {
+        // Limpa arquivos de dados e registro de instâncias se COMPLETELY_CLEAN_START=1
+        if (Number(process.env.COMPLETELY_CLEAN_START) === 1) {
+            const baseDir = './app/assets';
+            const instancesFile = path.join(baseDir, 'instances.log');
+
+            const files = await fs.promises.readdir(baseDir);
+            const targetFiles = files.filter(file => /^(data|ops|models|db)-.*\.json$/.test(file));
+            await Promise.all(targetFiles.map(file => fs.promises.unlink(path.join(baseDir, file))));
+
+            try {
+                await fs.promises.unlink(instancesFile);
+            } catch (err) {
+                if (err.code !== 'ENOENT') throw err;
+            }
+
+            console.log('⚠️ Start completamente limpo: arquivos de dados e registro de instâncias removidos.');
+        } else {
+            console.log('✅ Start normal: mantendo arquivos de dados e registro de instâncias existentes.');
+        }
+
+    const server = app.listen(process.env.PORT || 3131, () => {
+        console.log('Servidor iniciado na porta 👉', process.env.PORT, BASE_URL);
     });
+
+    const shutdown = async (signal) => {
+        console.log(`\nRecebido ${signal}. Iniciando encerramento gracioso...`);
+
+        server.close(async () => {
+            console.log('Servidor encerrado.');
+
+            //destrói o serviço de armazenamento para garantir que todos os arquivos sejam fechados corretamente
+            try {
+                const storage = getInstance();
+                await storage.destroy();
+                console.log('Serviço de armazenamento limpo e fechado.');
+            } catch (err) {
+                console.error('Erro durante a limpeza do serviço de armazenamento:', err);
+            }
+
+            //destrói o serviço de modelos para garantir que todos os arquivos sejam fechados corretamente
+            try {
+                const modelService = getModelService();
+                await modelService.destroy();
+                console.log('Serviço de modelos limpo e fechado.');
+            } catch (err) {
+                console.error('Erro durante a limpeza do serviço de modelos:', err);
+            }
+
+            //destrói o serviço de operações para garantir que todos os arquivos sejam fechados corretamente
+            try {
+                const opsService = getOpsService();
+                await opsService.destroy();
+                console.log('Serviço de operações limpo e fechado.');
+            } catch (err) {
+                console.error('Erro durante a limpeza do serviço de operações:', err);
+            }
+
+            //destrói o serviço de banco de dados
+            try {
+                const dbService = getDatabaseService();
+                await dbService.destroy();
+                console.log('Serviço de banco de dados limpo e fechado.');
+            } catch (err) {
+                console.error('Erro durante a limpeza do serviço de banco de dados:', err);
+            }
+
+            console.log('Encerramento gracioso concluído.');
+            process.exit(0);
+        });
+
+        // Forçar saída se o encerramento demorar muito
+        setTimeout(() => {
+            console.error('Tempo limite de encerramento excedido. Forçando saída.');
+            process.exit(1);
+        }, 10000).unref();
+    };
+
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    })();
 }
 
-module.exports = app; // export for testing
+module.exports = app;
 
 
 

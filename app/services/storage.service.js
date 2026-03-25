@@ -1,5 +1,6 @@
 const fsPromises = require('fs').promises;
 const path = require('path');
+const { getInstance: getOpsService } = require('./operations.service');
 
 class StorageService {
   constructor(options = {}) {
@@ -10,8 +11,6 @@ class StorageService {
     // Cache em memória
     this.instancesCache = new Set();
     this.dataCache = new Map(); // instance -> data object
-    this.opsCache = new Map();  // instance -> operations array
-    this.modelsCache = new Map(); // instance -> models object
     
     // Controle de escritas em batch
     this.writePending = new Map(); // instance -> timeout
@@ -31,7 +30,7 @@ class StorageService {
    */
   async initialize() {
     if (this.initialized) return;
-    
+
     try {
       // Cria diretório se não existir
       await fsPromises.mkdir(this.baseDir, { recursive: true });
@@ -119,85 +118,6 @@ class StorageService {
   }
 
   /**
-   * Carrega operações de uma instância no cache
-   */
-  async loadInstanceOps(instance) {
-    if (this.opsCache.has(instance)) {
-      return this.opsCache.get(instance);
-    }
-    
-    const opsFilePath = path.join(this.baseDir, `ops-${instance}.json`);
-    
-    try {
-      const buffer = await fsPromises.readFile(opsFilePath);
-      const ops = JSON.parse(buffer.toString('utf8'));
-      this.opsCache.set(instance, ops);
-      return ops;
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        const ops = [];
-        this.opsCache.set(instance, ops);
-        return ops;
-      }
-      throw err;
-    }
-  }
-
-    /**
-   * Carrega modelos de uma instância no cache
-   */
-  async loadInstanceModels(instance) {
-    if (this.modelsCache.has(instance)) {
-      return this.modelsCache.get(instance);
-    }
-    
-    const modelsFilePath = path.join(this.baseDir, `models-${instance}.json`);
-    
-    try {
-      const buffer = await fsPromises.readFile(modelsFilePath);
-      const models = JSON.parse(buffer.toString('utf8'));
-      this.modelsCache.set(instance, models);
-      return models;
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        const models = [];
-        this.modelsCache.set(instance, models);
-        return models;
-      }
-      throw err;
-    }
-  }
-
-      /**
-   * Define/atualiza um model
-   */
-  async createModel(instance, name, fields ) {
-    await this.initialize();
-    
-    // Carrega dados no cache se necessário
-    const models = await this.loadInstanceModels(instance);
-    
-    // Atualiza em memória
-    models[name] = fields;
-    this.modelsCache.set(instance, models);
-    
-    // Agenda escrita em batch
-    this.scheduleSyncInstance(instance);
-    
-    return true;
-  }
-
-  /**
-   * Lê um modelo
-   */
-  async getModel(instance, name) {
-    await this.initialize();
-    
-    const models = await this.loadInstanceModels(instance);
-    return models[name];
-  }
-  
-  /**
    * Agenda escrita em batch (debounce)
    */
   scheduleSyncInstance(instance) {
@@ -229,7 +149,6 @@ class StorageService {
     
     try {
       const dataFilePath = path.join(this.baseDir, `data-${instance}.json`);
-      const opsFilePath = path.join(this.baseDir, `ops-${instance}.json`);
       
       // Escreve em paralelo (quando possível)
       const promises = [];
@@ -239,13 +158,6 @@ class StorageService {
         const jsonString = JSON.stringify(data);
         const buffer = Buffer.from(jsonString, 'utf8');
         promises.push(fsPromises.writeFile(dataFilePath, buffer));
-      }
-      
-      if (this.opsCache.has(instance)) {
-        const ops = this.opsCache.get(instance);
-        const jsonString = JSON.stringify(ops);
-        const buffer = Buffer.from(jsonString, 'utf8');
-        promises.push(fsPromises.writeFile(opsFilePath, buffer));
       }
       
       await Promise.all(promises);
@@ -262,11 +174,12 @@ class StorageService {
     
     // Carrega dados no cache se necessário
     const data = await this.loadInstanceData(instance);
-    const ops = await this.loadInstanceOps(instance);
     
     // Atualiza em memória
     data[key] = value;
-    ops.push({ key, value, updatedAt: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) });
+    
+    // Registra operação no serviço de ops
+    await getOpsService().appendOp(instance, { type: 'setEntry', key, value });
     
     // Agenda escrita em batch
     this.scheduleSyncInstance(instance);
@@ -294,16 +207,6 @@ class StorageService {
     return { ...data }; // Retorna cópia para evitar mutações
   }
 
-    /**
-   * Lê todos modelos de uma instância
-   */
-  async getAllModels(instance) {
-    await this.initialize();
-    
-    const models = await this.loadInstanceModels(instance);
-    return { ...models }; // Retorna cópia para evitar mutações
-  }
-
   /**
    * Lê todas instâncias (root)
    */
@@ -329,6 +232,26 @@ class StorageService {
   }
 
   /**
+   * Remove todos os dados de uma instância da memória e do disco.
+   */
+  async purgeInstance(instance) {
+    // cancela timer pendente
+    if (this.writePending.has(instance)) {
+      clearTimeout(this.writePending.get(instance));
+      this.writePending.delete(instance);
+    }
+    // limpa cache
+    this.instancesCache.delete(instance);
+    this.dataCache.delete(instance);
+    // apaga arquivos
+    const dataFile = path.join(this.baseDir, `data-${instance}.json`);
+    await fsPromises.unlink(dataFile).catch(() => {});
+    // reescreve instances.log sem a instância removida
+    const remaining = Array.from(this.instancesCache).join('\n');
+    await fsPromises.writeFile(this.instancesFile, remaining ? remaining + '\n' : '');
+  }
+
+  /**
    * Força sincronização imediata de todas instâncias
    */
   async flush() {
@@ -345,22 +268,6 @@ class StorageService {
     }
     
     await Promise.all(promises);
-  }
-
-  /**
-   * Limpa cache de uma instância específica
-   */
-  clearCache(instance) {
-    this.dataCache.delete(instance);
-    this.opsCache.delete(instance);
-  }
-
-  /**
-   * Limpa todo cache
-   */
-  clearAllCache() {
-    this.dataCache.clear();
-    this.opsCache.clear();
   }
 
   /**
